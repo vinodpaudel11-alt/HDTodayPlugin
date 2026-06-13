@@ -1,49 +1,38 @@
 name: Build HDToday CloudStream Plugin
-
 on:
   push:
     branches: [ main, master ]
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
       - name: Clone official CloudStream extensions repo
         run: git clone https://github.com/recloudstream/extensions cs_template
-
       - name: Copy HDTodayProvider into template
         run: cp -r HDTodayProvider cs_template/
-
       - name: Register plugin in settings.gradle.kts
         working-directory: cs_template
         run: |
           echo '' >> settings.gradle.kts
           echo 'include(":HDTodayProvider")' >> settings.gradle.kts
-
       - name: Grant execute permission to gradlew
         run: chmod +x cs_template/gradlew
-
       - name: Build HDTodayProvider
         working-directory: cs_template
         run: ./gradlew :HDTodayProvider:build
-
       - name: Find and copy .cs3 file
         run: |
           find cs_template -name "*.cs3" | head -5
           find cs_template -name "*.cs3" -exec cp {} HDTodayProvider.cs3 \;
           ls -lh HDTodayProvider.cs3
-
       - name: Upload .cs3 as artifact
         uses: actions/upload-artifact@v4
         with:
